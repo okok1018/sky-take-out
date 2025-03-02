@@ -1,7 +1,10 @@
 package com.sky.service.impl;
 
 import com.sky.constant.MessageConstant;
+import com.sky.constant.PasswordConstant;
 import com.sky.constant.StatusConstant;
+import com.sky.context.BaseContext;
+import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.AccountLockedException;
@@ -9,9 +12,12 @@ import com.sky.exception.AccountNotFoundException;
 import com.sky.exception.PasswordErrorException;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.service.EmployeeService;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
+
+import java.time.LocalDateTime;
 
 @Service
 public class EmployeeServiceImpl implements EmployeeService {
@@ -39,12 +45,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         //密码比对
-        // TODO 后期需要进行md5加密，然后再进行比对
+        password = DigestUtils.md5DigestAsHex(password.getBytes());
+
         if (!password.equals(employee.getPassword())) {
             //密码错误
             throw new PasswordErrorException(MessageConstant.PASSWORD_ERROR);
         }
-
+        //账号状态比对
         if (employee.getStatus() == StatusConstant.DISABLE) {
             //账号被锁定
             throw new AccountLockedException(MessageConstant.ACCOUNT_LOCKED);
@@ -52,6 +59,43 @@ public class EmployeeServiceImpl implements EmployeeService {
 
         //3、返回实体对象
         return employee;
+    }
+
+    /**
+     * 新增员工
+     *
+     * @param employeeDTO
+     */
+    public void save(EmployeeDTO employeeDTO) {
+
+        //前端传入的是包装成的DTO对象，因此传入mapper持久层得还原成Employee，
+        //为了不重复使用set方法进行逐个拷贝，减少代码冗余和重复，这里使用spring的工具类
+        Employee employee = new Employee();
+
+        //对象拷贝只能拷贝DTO对象和实体类对应的属性，因此实体类其他属性得手动设置
+        BeanUtils.copyProperties(employeeDTO, employee);
+
+        //设置状态属性，但是这里直接传入设置了属性的常量，方便后续修改方便
+        employee.setStatus(StatusConstant.ENABLE);
+
+        //设置密码,需要先加密在传入数据库，但是直接导入定义的常量DEFAULT_PASSWORD，作用同上
+        employee.setPassword(DigestUtils.md5DigestAsHex(PasswordConstant.DEFAULT_PASSWORD.getBytes()));
+
+        //设置当前的创建时间和修改时间
+        employee.setCreateTime(LocalDateTime.now());
+        employee.setUpdateTime(LocalDateTime.now());
+
+//        private Long createUser;
+//        先写死固定值，后续需要完善
+
+        //在拦截器当中的生成令牌那个阶段进行注入id，到service层进行注入设置
+        employee.setCreateUser(BaseContext.getCurrentId());
+        employee.setUpdateUser(BaseContext.getCurrentId());
+
+//        private Long updateUser;
+
+        employeeMapper.insert(employee);
+
     }
 
 }
