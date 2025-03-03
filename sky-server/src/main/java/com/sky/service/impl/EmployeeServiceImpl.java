@@ -109,7 +109,6 @@ public class EmployeeServiceImpl implements EmployeeService {
      * @param employeePageQueryDTO  封装了页码和记录数
      * @return
      */
-    @Override
     public PageResult pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
 //        已配置pagehelper，简化分页查询代码的书写效率
         PageHelper.startPage(employeePageQueryDTO.getPage(),employeePageQueryDTO.getPageSize());
@@ -117,6 +116,20 @@ Page<Employee> page=employeeMapper.pageQuery(employeePageQueryDTO);
         long total = page.getTotal();
         List<Employee> records = page.getResult();
         return new PageResult(total, records);
+    }
+
+    /**
+     * 启用，禁用员工账号
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, Long id) {
+        Employee employee = Employee.builder()
+                .status(status)
+                .id(id)
+                .build();
+employeeMapper.update(employee);
+
     }
 
 }
