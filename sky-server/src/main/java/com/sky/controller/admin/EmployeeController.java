@@ -132,11 +132,12 @@ public class EmployeeController {
         Employee employee = employeeService.getById(id);
         return Result.success(employee);//传入employee，employee会被封装到result里面的data
     }
+
     @PutMapping
     @ApiOperation("修改员工信息")
     public Result<EmployeeDTO> update(@RequestBody EmployeeDTO employeeDTO) {
         employeeService.update(employeeDTO);
-return Result.success();
+        return Result.success();
     }
 
 }
