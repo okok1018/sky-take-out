@@ -31,10 +31,10 @@ public class MinioOssUtil {
      * @return
      * @throws Exception
      */
-    public String upload(byte[] bytes, String objectName) throws Exception {
+    public String upload(byte[] bytes, String objectName)  {
         // 格式化文件名
         String formattedObjectName = formatObjectName(objectName);
-        validateInput(bytes, objectName);
+        validateInput(bytes, formattedObjectName);
         try (ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes)) {
             // 创建MinioClient实例
             MinioClient minioClient = MinioClient.builder()
@@ -44,14 +44,14 @@ public class MinioOssUtil {
 
             PutObjectArgs objectArgs = PutObjectArgs.builder()
                     .bucket(minioProperties.getBucketName())
-                    .object(objectName)
+                    .object(formattedObjectName)
                     .stream(byteArrayInputStream, bytes.length, -1)
                     .contentType("image/png")
                     .build();
 
             minioClient.putObject(objectArgs);
 
-            return buildUrl(objectName);
+            return buildUrl(formattedObjectName);
 
         } catch (InvalidKeyException | NoSuchAlgorithmException e) {
             throw new RuntimeException("认证或加密相关错误", e);
