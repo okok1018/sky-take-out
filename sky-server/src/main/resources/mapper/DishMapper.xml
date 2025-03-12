@@ -5,13 +5,18 @@
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
         insert into dish
-            (id, name, category_id, price, image, description,
-             status, create_time, update_time, create_user, update_user)
-            VALUES
-                (#{id},#{name},#{categoryId},#{price},#{image},
-                 #{description},#{status},#{createTime},#{updateTime},#{createUser},#{updateUser})
+        (id, name, category_id, price, image, description,
+         status, create_time, update_time, create_user, update_user)
+        VALUES (#{id}, #{name}, #{categoryId}, #{price}, #{image},
+                #{description}, #{status}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
 
     </insert>
+    <delete id="DeleteByIds">
+        delete from dish where id in
+        <foreach collection="ids" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </delete>
     <select id="pageQuery" resultType="com.sky.vo.DishVO">
         select d.*,c.name as categoryName
         from dish d left join category c
@@ -27,6 +32,9 @@
                 and d.status=#{status}
             </if>
         </where>
-order by d.create_time desc
+        order by d.create_time desc
+    </select>
+    <select id="getByIdWithFlavors" resultType="com.sky.vo.DishVO">
+        select * from dish d where id=#{id}
     </select>
 </mapper>

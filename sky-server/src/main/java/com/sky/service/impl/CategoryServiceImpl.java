@@ -42,6 +42,7 @@ public class CategoryServiceImpl implements CategoryService {
     public void save(CategoryDTO categoryDTO) {
         Category category = new Category();
         //属性拷贝
+
         BeanUtils.copyProperties(categoryDTO, category);
 
         //分类状态默认为禁用状态0
@@ -65,7 +66,7 @@ public class CategoryServiceImpl implements CategoryService {
         PageHelper.startPage(categoryPageQueryDTO.getPage(),categoryPageQueryDTO.getPageSize());
         //下一条sql进行分页，自动加入limit关键字分页
         Page<Category> page = categoryMapper.pageQuery(categoryPageQueryDTO);
-        return new PageResult(page.getTotal(), page.getResult());
+        return new PageResult(page.getTotal(),page.getResult());
     }
 
     /**
