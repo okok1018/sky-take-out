@@ -1,9 +1,7 @@
 package com.sky.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
+
 import java.io.Serializable;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -25,6 +23,7 @@ public class Dish implements Serializable {
     private String name;
 
     //菜品分类id
+
     private Long categoryId;
 
     //菜品价格

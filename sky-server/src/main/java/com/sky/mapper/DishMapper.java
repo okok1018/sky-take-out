@@ -54,4 +54,12 @@ public interface DishMapper {
      * @return
      */
     DishVO getByIdWithFlavors(Long id);
+
+    /**
+     * 修改菜品表数据
+     * @param dish
+     */
+
+    @AutoFill(OperationType.UPDATE)
+    void update(Dish dish);
 }

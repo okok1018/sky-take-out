@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 
@@ -115,7 +116,7 @@ public class DishServiceImpl implements DishService {
      */
 
     public DishVO getByIdWithFlavors(Long id) {
-        log.info("根据口味id查询菜品信息进行回显方便用户进行修改{}",id);
+        log.info("根据口味id查询菜品信息进行回显方便用户进行修改{}", id);
 //此操作涉及到查询两张表格，因此，调用两个方法查询到后，封装到一个vo对象返回给前端
         DishVO dishVO = new DishVO();//new一个dishVO来接收查询的数据，进行封装，传输到前端
         Dish dish = dishMapper.getById(id);
@@ -123,6 +124,40 @@ public class DishServiceImpl implements DishService {
         BeanUtils.copyProperties(dish, dishVO); //把dish里面的属性拷贝给dishVO
         dishVO.setFlavors(flavors); //最后把口味数据拷过去
         return dishVO;
+    }
+
+    /**
+     * 修改菜品连带着口味
+     *
+     * @param dishDTO
+     */
+    public void updateWithFlavor(DishDTO dishDTO) {
+//        真正的代码逻辑加工都放在服务层
+//        解析出数据，加工哪些表，先把数据分离出来
+        //接受到了dto，这已经是前端已经修改好的数据，等待上传给数据库的
+//        因此我现在得解析出来，对不同类型的数据进行表数据的更新
+//        根据数据内容，我得操作两个表，一个是dish表，一个是dish_flavor表，因此先new出来，进行属性拷贝
+//        表dish
+        Dish dish = new Dish();
+        BeanUtils.copyProperties(dishDTO, dish);
+        dishMapper.update(dish);
+//        表dish_flavor
+//        对于这个表格，用户会对口味数据进行多种变化，
+//        比如：删除某些口味数据，或者新增某些口味数据，因此带来了更新层面的困难
+//        现在，先根据id对口味表进行删除数据，然后对前端提交的口味数据进行插入，减少技术层面的复杂性
+        dishFlavorMapper.DeleteByIds(Collections.singletonList(dishDTO.getId()));
+//        这里为了代码的复用性，直接调用了批量删除口味的方法，传入的是id的集合，这里进行转化成list集合即可
+        List<DishFlavor> flavors = dishDTO.getFlavors();
+        if (flavors != null && !flavors.isEmpty()) {
+            flavors.forEach(dishFlavor -> {
+                dishFlavor.setDishId(dishDTO.getId());
+            });
+            //向口味表插入n条数据
+            dishFlavorMapper.insertBatch(flavors);
+
+        }
+
+//        将这些数据提取出来，作为参数传递给sql语句然后进行数据库的操作。
     }
 
 
