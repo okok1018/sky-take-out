@@ -49,8 +49,10 @@ public class DishServiceImpl implements DishService {
         Dish dish = new Dish();
         BeanUtils.copyProperties(dishDTO, dish);
         dishMapper.insert(dish);
-        Long dishId = dish.getId();
+        Long dishId = dish.getId();//不可以合并到setDishId(dishId),这是用来插入数据获取id用来回显
 //        插入口味表数据，可能多条
+
+
 //        DTO里面提取出来flavor集合，对属性进行相应的注入
         List<DishFlavor> flavors = dishDTO.getFlavors();
         if (flavors != null && !flavors.isEmpty()) {
@@ -158,6 +160,21 @@ public class DishServiceImpl implements DishService {
         }
 
 //        将这些数据提取出来，作为参数传递给sql语句然后进行数据库的操作。
+    }
+
+    /**
+     * 根据分类id查询菜品信息
+     *
+     * @param categoryId
+     * @return
+     */
+    public List<Dish> getByCategoryId(Long categoryId) {
+//        接收分类的id，调用查询语句查询相应的菜品信息，
+        Dish dish = new Dish().builder()
+                .status(StatusConstant.ENABLE)
+                .categoryId(categoryId)
+                .build();//由于前端页面填写的信息没有status和categoryId，因此得构建出来
+        return dishMapper.getByCategoryId(dish);
     }
 
 
