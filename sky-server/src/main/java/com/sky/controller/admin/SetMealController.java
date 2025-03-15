@@ -1,6 +1,8 @@
 package com.sky.controller.admin;
 
 import com.sky.dto.SetmealDTO;
+import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.SetMealService;
 import com.sky.vo.DishVO;
@@ -10,6 +12,8 @@ import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -27,5 +31,20 @@ public class SetMealController {
         return Result.success();
     }
 
-
+    @GetMapping("/page")
+    @ApiOperation("套餐的分页查询")
+    public Result<PageResult> page(SetmealPageQueryDTO setmealPageQueryDTO) {
+        log.info("分页查询{}", setmealPageQueryDTO);
+        PageResult pageResult = setmealService.pageQuery(setmealPageQueryDTO);
+        return Result.success(pageResult);
+    }
+@DeleteMapping
+@ApiOperation("批量删除菜品")
+    public Result<String> delete(@RequestParam List<Long> ids) {
+        //前端传过来的是string类型的ids
+        //@RequestParam springmvc框架会将前端传输过来的string类型的数据
+        // 转化成注解后指定的类型
+        setmealService.deleteBatch(ids);
+        return Result.success("删除成功");
+    }
 }

@@ -15,5 +15,36 @@
              #{image}, #{createTime},#{updateTime},
              #{createUser}, #{updateUser})
     </insert>
-
+    <!--    分页查询的sql语句，传入的数据，其中返回值有category表中name字段，
+    因此的进行两张表的联合查询
+    联合category表和setmeal表，setmeal表左外链接，连接条件为每张表的主键-->
+    <select id="pageQuery" resultType="com.sky.vo.SetmealVO">
+        select
+        s.*, c.name as categoryName
+        from
+        setmeal as s
+        left join
+        category c
+        on s.category_id = c.id
+        <where>
+            <if test="categoryId != null">
+                and category_id=#{categoryId}
+            </if>
+            <if test="name != null">
+                and s.name like concat('%',#{name},'%')
+            </if>
+            <if test="status != null">
+                and s.status =#{status}
+            </if>
+        </where>
+        order by s.create_time desc
+    </select>
+<!--编写批量删除的语句，将ids进行foreach解析出。-->
+    <delete id="deleteBatch">
+        delete from setmeal
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
 </mapper>

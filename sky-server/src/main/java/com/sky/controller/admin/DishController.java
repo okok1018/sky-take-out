@@ -42,8 +42,9 @@ public class DishController {
         return Result.success(pageResult);
     }
 
-    @ApiOperation("批量删除菜品")
+
     @DeleteMapping
+    @ApiOperation("批量删除菜品")
     public Result<String> delete(@RequestParam List<Long> ids) {
         //@RequestParam springmvc框架会将前端传输过来的string类型的数据
         // 转化成注解后指定的类型

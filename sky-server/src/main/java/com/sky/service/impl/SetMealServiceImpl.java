@@ -1,11 +1,16 @@
 package com.sky.service.impl;
 
+import com.github.pagehelper.Page;
+import com.github.pagehelper.PageHelper;
 import com.sky.dto.SetmealDTO;
+import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.mapper.SetMealDishMapper;
 import com.sky.mapper.SetMealMapper;
+import com.sky.result.PageResult;
 import com.sky.service.SetMealService;
+import com.sky.vo.DishVO;
 import com.sky.vo.SetmealVO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
@@ -54,6 +59,30 @@ public class SetMealServiceImpl implements SetMealService {
 
     }
 
+    /**
+     * 套餐的分页查询
+     * @param setmealPageQueryDTO
+     * @return
+     */
+    public PageResult pageQuery(SetmealPageQueryDTO setmealPageQueryDTO) {
+        //解析出dto对象。调用方法返回
+        PageHelper.startPage(setmealPageQueryDTO.getPage(), setmealPageQueryDTO.getPageSize());
+        Page<SetmealVO> page = setmealMapper.pageQuery(setmealPageQueryDTO);//page类的对象继承了集合属性，一次相当于是集合
+
+        return new PageResult(page.getTotal(), page.getResult());//方法返回的对象会在此返回给controller层传递给前端
+    }
+
+    /**
+     * 根据id批量删除套餐
+     * @param ids
+     */
+    public void deleteBatch(List<Long> ids) {
+//        接收ids，传入sql语句当中作为id in(,,,)的形式进行批量删除
+        if (ids != null && !ids.isEmpty()) {
+            setmealMapper.deleteBatch(ids);
+        }
+
+    }
 
 
 }
