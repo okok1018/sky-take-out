@@ -40,4 +40,11 @@ public interface SetMealService {
      * @param setmealDTO
      */
     void updateWithDish(SetmealDTO setmealDTO);
+
+    /**
+     * 调整套餐状态
+     * @param status
+     * @param id
+     */
+    void startOrStop(Integer status, Long id);
 }

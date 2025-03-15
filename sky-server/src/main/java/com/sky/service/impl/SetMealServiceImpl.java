@@ -6,12 +6,16 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
+import com.sky.entity.Dish;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
 import com.sky.exception.DeletionNotAllowedException;
+import com.sky.exception.SetmealEnableFailedException;
+import com.sky.mapper.DishMapper;
 import com.sky.mapper.SetMealDishMapper;
 import com.sky.mapper.SetMealMapper;
 import com.sky.result.PageResult;
+import com.sky.service.DishService;
 import com.sky.service.SetMealService;
 import com.sky.vo.DishVO;
 import com.sky.vo.SetmealVO;
@@ -23,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -31,6 +36,10 @@ public class SetMealServiceImpl implements SetMealService {
     private SetMealMapper setmealMapper;
     @Autowired
     private SetMealDishMapper setmealDishMapper;
+    @Autowired
+    private DishMapper dishMapper;
+    @Autowired
+    private DishService dishService;
 
     /**
      * 新增套餐连带菜品
@@ -145,5 +154,33 @@ public class SetMealServiceImpl implements SetMealService {
 
 
     }
-}
 
+    /**
+     * 调整套餐状态
+     *
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, Long id) {
+        //起售套餐时，判断套餐内是否有停售菜品，有停售菜品提示"套餐内包含未启售菜品，无法启售"
+        if (Objects.equals(status, StatusConstant.ENABLE)) {
+//            通过dish和setdish进行连接查询
+            List<Dish> dishList = dishMapper.getBySetmealId(id);//拿到所有关联菜品信息
+            if (dishList != null && !dishList.isEmpty()) {//判断是否有关联菜品
+                dishList.forEach(dish -> {
+                    if (StatusConstant.DISABLE.equals(dish.getStatus())) {
+                        //循环遍历判断菜品的状态，只要有停售，就抛异常
+                        throw new SetmealEnableFailedException(MessageConstant.SETMEAL_ENABLE_FAILED);
+                    }
+                });
+            }
+            //这里拿到的是套餐的id和套餐的状态，以id为条件，进行套餐的修改
+
+        }
+        Setmeal setmeal = Setmeal.builder()
+                .id(id)
+                .status(status)
+                .build();
+        setmealMapper.update(setmeal);
+    }
+}
