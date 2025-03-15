@@ -120,7 +120,7 @@ public class DishServiceImpl implements DishService {
 
     public DishVO getByIdWithFlavors(Long id) {
         log.info("根据口味id查询菜品信息进行回显方便用户进行修改{}", id);
-//此操作涉及到查询两张表格，因此，调用两个方法查询到后，封装到一个vo对象返回给前端
+        //此操作涉及到查询两张表格，因此，调用两个方法查询到后，封装到一个vo对象返回给前端
         DishVO dishVO = new DishVO();//new一个dishVO来接收查询的数据，进行封装，传输到前端
         Dish dish = dishMapper.getById(id);
         List<DishFlavor> flavors = dishFlavorMapper.getByDishId(id);

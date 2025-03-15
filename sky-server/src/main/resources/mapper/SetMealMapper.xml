@@ -6,15 +6,46 @@
 
     <insert id="insert" parameterType="Setmeal" useGeneratedKeys="true" keyProperty="id">
         INSERT INTO setmeal
-            (category_id, name, price, status,
-             description, image, create_time, update_time,
-            create_user, update_user)
-        VALUES
-            (#{categoryId}, #{name},
-             #{price}, #{status}, #{description},
-             #{image}, #{createTime},#{updateTime},
-             #{createUser}, #{updateUser})
+        (category_id, name, price, status,
+         description, image, create_time, update_time,
+         create_user, update_user)
+        VALUES (#{categoryId}, #{name},
+                #{price}, #{status}, #{description},
+                #{image}, #{createTime}, #{updateTime},
+                #{createUser}, #{updateUser})
     </insert>
+
+    <!--根据套餐id更新套餐数据-->
+    <update id="update">
+        update setmeal
+        <set>
+            <if test="categoryId != null">
+                category_id = #{categoryId},
+            </if>
+            <if test="name != null and name != ''">
+                name = #{name},
+            </if>
+            <if test="price != null">
+                price = #{price},
+            </if>
+            <if test="status != null">
+                status = #{status},
+            </if>
+            <if test="description != null and description != ''">
+                description = #{description},
+            </if>
+            <if test="image != null and image != ''">
+                image = #{image},
+            </if>
+            <if test="updateTime !=null">
+                update_time=#{updateTime},
+            </if>
+            <if test="updateUser !=null">
+                update_user=#{updateUser},
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
 
     <!--    分页查询的sql语句，传入的数据，其中返回值有category表中name字段，
     因此的进行两张表的联合查询

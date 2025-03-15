@@ -38,13 +38,30 @@ public class SetMealController {
         PageResult pageResult = setmealService.pageQuery(setmealPageQueryDTO);
         return Result.success(pageResult);
     }
-@DeleteMapping
-@ApiOperation("批量删除菜品")
+
+    @DeleteMapping
+    @ApiOperation("批量删除菜品")
     public Result<String> delete(@RequestParam List<Long> ids) {
         //前端传过来的是string类型的ids
         //@RequestParam springmvc框架会将前端传输过来的string类型的数据
         // 转化成注解后指定的类型
         setmealService.deleteBatch(ids);
         return Result.success("删除成功");
+    }
+
+    @GetMapping("/{id}")
+    @ApiOperation("根据套餐id查询套餐信息")
+    public Result<SetmealVO> find(@PathVariable Long id) {
+        SetmealVO setmealVO = setmealService.getByIdWithDishes(id);
+        return Result.success(setmealVO);
+    }
+
+    @PutMapping
+    @ApiOperation("修改套餐功能")
+    public Result<String> update(@RequestBody SetmealDTO setmealDTO) {
+        log.info("修改套餐{}", setmealDTO);
+        //传入dto对象
+        setmealService.updateWithDish(setmealDTO);
+        return Result.success("修改成功");
     }
 }

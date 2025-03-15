@@ -99,5 +99,51 @@ public class SetMealServiceImpl implements SetMealService {
 //删除关联数据
         setmealDishMapper.deleteBySetmealId(ids);//删setmeal_dish表的数据
     }
+
+    /**
+     * 根据套餐id查询套餐信息，进行前端的修改操作的回显数据
+     *
+     * @param id
+     * @return
+     */
+    public SetmealVO getByIdWithDishes(Long id) {
+//       查到了就对vo进行整体赋值
+        SetmealVO setmealVO = new SetmealVO();
+//        setmealMapper，setmealDishMapper两个对象，都需要根据id查询信息。
+        Setmeal setmeal = setmealMapper.getById(id);
+        BeanUtils.copyProperties(setmeal, setmealVO);
+
+        List<SetmealDish> setmealDishes = setmealDishMapper.getById(id);//一个套餐会有多个菜品
+        setmealVO.setSetmealDishes(setmealDishes);
+
+        return setmealVO;
+    }
+
+    /**
+     * 修改套餐功能
+     *
+     * @param setmealDTO
+     */
+    @Transactional//涉及多表前后操作形式的方式一定得保证事务的一致性
+    public void updateWithDish(SetmealDTO setmealDTO) {
+//        先拿到前端传递过来的dto对象，解析出来，分别调用两张表格的更新方法进行更新操作
+        Setmeal setmeal = new Setmeal();
+        BeanUtils.copyProperties(setmealDTO, setmeal);//拷贝一下
+        setmealMapper.update(setmeal);//更新套餐信息
+        Long setmealId = setmealDTO.getId();
+
+        setmealDishMapper.deleteBySetmealId(Collections.singletonList(setmealId));//删除套餐关联的菜品信息
+//因为一个套餐涉及多个关联菜品数据，因此更新操作非常复杂，直接先删除后插入前端传过来的新数据即可
+        List<SetmealDish> setmealDishes = setmealDTO.getSetmealDishes();
+        if (setmealDishes != null && !setmealDishes.isEmpty()) {
+            setmealDishes.forEach(setmealDish -> {
+                setmealDish.setSetmealId(setmealId);
+            });
+        }
+
+        setmealDishMapper.insertBatch(setmealDishes);//将dto里面的菜品数据进行传入插入
+
+
+    }
 }
 
