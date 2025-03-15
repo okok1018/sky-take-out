@@ -8,6 +8,7 @@ import com.sky.entity.SetmealDish;
 import com.sky.enumeration.OperationType;
 import com.sky.vo.DishVO;
 import com.sky.vo.SetmealVO;
+import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
@@ -41,9 +42,19 @@ public interface SetMealMapper {
      */
     Page<SetmealVO> pageQuery(SetmealPageQueryDTO setmealPageQueryDTO);
 
+
+
     /**
-     * 传入ids在mapper中解析出来后进行批量删除
-     * @param ids
+     * 根据id查询套餐信息
+     * @param id
+     * @return
      */
-    void deleteBatch(List<Long> ids);
+    @Select("select * from setmeal where id=#{id}")
+    Setmeal getById(Long id);
+
+    /**
+     * 传入setmealId进行删除关联表数据
+     * @param setmealId
+     */
+    void deleteBatch(List<Long> setmealId);
 }

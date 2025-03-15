@@ -6,6 +6,7 @@ import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.dto.DishDTO;
 import com.sky.dto.DishPageQueryDTO;
+import com.sky.entity.Category;
 import com.sky.entity.Dish;
 import com.sky.entity.DishFlavor;
 import com.sky.exception.DeletionNotAllowedException;
@@ -175,6 +176,20 @@ public class DishServiceImpl implements DishService {
                 .categoryId(categoryId)
                 .build();//由于前端页面填写的信息没有status和categoryId，因此得构建出来
         return dishMapper.getByCategoryId(dish);
+    }
+
+    /**
+     * 菜品的起售和停售
+     * @param status
+     * @param id
+     */
+    public void startOrStop(Integer status, Long id) {
+        Dish dish = Dish.builder()
+                .id(id)
+                .status(status)
+                .build();
+//        构建id和status，传入进行更新数据的操作
+        dishMapper.update(dish);
     }
 
 

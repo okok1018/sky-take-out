@@ -2,10 +2,13 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.sky.constant.MessageConstant;
+import com.sky.constant.StatusConstant;
 import com.sky.dto.SetmealDTO;
 import com.sky.dto.SetmealPageQueryDTO;
 import com.sky.entity.Setmeal;
 import com.sky.entity.SetmealDish;
+import com.sky.exception.DeletionNotAllowedException;
 import com.sky.mapper.SetMealDishMapper;
 import com.sky.mapper.SetMealMapper;
 import com.sky.result.PageResult;
@@ -18,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -61,6 +65,7 @@ public class SetMealServiceImpl implements SetMealService {
 
     /**
      * 套餐的分页查询
+     *
      * @param setmealPageQueryDTO
      * @return
      */
@@ -74,15 +79,25 @@ public class SetMealServiceImpl implements SetMealService {
 
     /**
      * 根据id批量删除套餐
+     *
      * @param ids
      */
+    @Transactional
     public void deleteBatch(List<Long> ids) {
 //        接收ids，传入sql语句当中作为id in(,,,)的形式进行批量删除
-        if (ids != null && !ids.isEmpty()) {
-            setmealMapper.deleteBatch(ids);
-        }
-
+//        判断套餐的状态是不是可删，起售当中的不可以删
+//        不仅仅只是对一个表进行操作删除，还需要对关联表进行一一删除，不能有残留的数据
+        ids.forEach(id -> {//这里是对ids集合进行取出，用id接收
+            Setmeal setmeal = setmealMapper.getById(id);//传入id拿到对应的套餐数据
+            if (StatusConstant.ENABLE.equals(setmeal.getStatus())) {//对套餐的状态进行比对
+                //起售中的套餐不能删除
+                throw new DeletionNotAllowedException(MessageConstant.SETMEAL_ON_SALE);
+            }
+        });
+//            删除套餐表的数据
+        setmealMapper.deleteBatch(ids);//删setmeal表中的数据
+//删除关联数据
+        setmealDishMapper.deleteBySetmealId(ids);//删setmeal_dish表的数据
     }
-
-
 }
+
