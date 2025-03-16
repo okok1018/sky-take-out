@@ -46,7 +46,7 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
      * @return
      */
     @Bean//程序启动之后会springboot框架会对其扫描，并且创建对象
-    public Docket docket() {
+    public Docket docket01() {
         ApiInfo apiInfo = new ApiInfoBuilder()
                 .title("苍穹外卖项目接口文档")
                 .version("2.0")
@@ -54,14 +54,32 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
                 .build();
 
         Docket docket = new Docket(DocumentationType.SWAGGER_2)//SWAGGER_2:swagger的版本
+                .groupName("admin")
                 .apiInfo(apiInfo)
                 .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))//指定扫描的包，controller包
+                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.admin"))//指定扫描的包，controller包
+                .paths(PathSelectors.any())
+                .build();
+        return docket;
+    }//3月16日，因为用户端和管理端的分离开发，因此控制层得分user和admin两个包，所以分来设置。
+
+    @Bean//程序启动之后会springboot框架会对其扫描，并且创建对象
+    public Docket docket02() {
+        ApiInfo apiInfo = new ApiInfoBuilder()
+                .title("苍穹外卖项目接口文档")
+                .version("2.0")
+                .description("苍穹外卖项目接口文档")
+                .build();
+
+        Docket docket = new Docket(DocumentationType.SWAGGER_2)//SWAGGER_2:swagger的版本
+                .groupName("user")
+                .apiInfo(apiInfo)
+                .select()
+                .apis(RequestHandlerSelectors.basePackage("com.sky.controller.user"))//指定扫描的包，controller包
                 .paths(PathSelectors.any())
                 .build();
         return docket;
     }
-
     /**
      * 设置静态资源映射
      * @param registry
