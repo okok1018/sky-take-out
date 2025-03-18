@@ -6,7 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
-@ConfigurationProperties(prefix = "sky.wechat")
+@ConfigurationProperties(prefix = "sky.wechat")//扫描配置类，找到对应属性的key  value，对一下定义的属性进行注入
 @Data
 public class WeChatProperties {
 

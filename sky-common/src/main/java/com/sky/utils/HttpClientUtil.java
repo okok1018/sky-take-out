@@ -29,8 +29,8 @@ public class HttpClientUtil {
 
     /**
      * 发送GET方式请求
-     * @param url
-     * @param paramMap
+     * @param url 微信服务接口地址
+     * @param paramMap 请求参数
      * @return
      */
     public static String doGet(String url,Map<String,String> paramMap){
