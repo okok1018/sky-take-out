@@ -11,6 +11,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,6 +27,8 @@ public class SetMealController {
 
     @PostMapping
     @ApiOperation("新增套餐")
+    //精确清理
+    @CacheEvict(cacheNames = "setmealCache",key = "#setmealDTO.categoryId")//key:setmealCache::100
     public Result<String> save(@RequestBody SetmealDTO setmealDTO) {
         log.info("新增套餐{}", setmealDTO);
         setmealService.saveWithDishes(setmealDTO);
@@ -41,6 +45,7 @@ public class SetMealController {
 
     @DeleteMapping
     @ApiOperation("批量删除菜品")
+    @CacheEvict(cacheNames = "setmealCache",allEntries = true)//删除所有缓存
     public Result<String> delete(@RequestParam List<Long> ids) {
         //前端传过来的是string类型的ids
         //@RequestParam springmvc框架会将前端传输过来的string类型的数据
@@ -58,6 +63,7 @@ public class SetMealController {
 
     @PutMapping
     @ApiOperation("修改套餐功能")
+    @CacheEvict(cacheNames = "setmealCache",allEntries = true)//删除所有缓存
     public Result<String> update(@RequestBody SetmealDTO setmealDTO) {
         log.info("修改套餐{}", setmealDTO);
         //传入dto对象
@@ -67,6 +73,7 @@ public class SetMealController {
 
     @PostMapping("/status/{status}")
     @ApiOperation("调整套餐的起售停售状态")
+    @CacheEvict(cacheNames = "setmealCache",allEntries = true)
     public Result<String> startOrStop(@PathVariable("status") Integer status, Long id){
         setmealService.startOrStop(status,id);
         return Result.success("调整成功");
