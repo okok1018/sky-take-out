@@ -50,7 +50,7 @@ public class ShoppingCartController {
     @PostMapping("/sub")
     @ApiOperation("C端的闪出购物车中的一个菜品")
     public Result<String> sub(@RequestBody ShoppingCartDTO shoppingCartDTO) {
-        shoppingCartService.delete(shoppingCartDTO);
+        shoppingCartService.subShoppingCart(shoppingCartDTO);
         return Result.success("success");
     }
 }

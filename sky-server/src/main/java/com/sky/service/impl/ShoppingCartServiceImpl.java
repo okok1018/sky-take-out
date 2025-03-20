@@ -14,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -101,21 +102,36 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
      *
      * @param shoppingCartDTO
      */
-    public void delete(ShoppingCartDTO shoppingCartDTO) {
+
+    public void subShoppingCart(ShoppingCartDTO shoppingCartDTO) {
         //拿到dish_id,setmeal_id,dish_flavor,
 //        同菜不同口味，只有id和dish_flavor才能表示
 //        三个数据封装，传入动态查询中，拿到唯一表示菜品的id，
         ShoppingCart shoppingCart = new ShoppingCart();
         BeanUtils.copyProperties(shoppingCartDTO, shoppingCart);
-        shoppingCart= shoppingCartMapper.list(shoppingCart).get(0);
-//        通过id拿到number;
-        if (shoppingCart.getNumber() >= 2) {
-            shoppingCart.setNumber(shoppingCart.getNumber() - 1);
-            shoppingCartMapper.updateNumberById(shoppingCart);//更新number
-        }else {
-        shoppingCartMapper.delete(shoppingCart);//删除整条数据
+
+//        shoppingCart= shoppingCartMapper.list(shoppingCart).get(0);//        通过id拿到number;
+//
+//        if (shoppingCart.getNumber() >= 2) {
+//            shoppingCart.setNumber(shoppingCart.getNumber() - 1);
+//            shoppingCartMapper.updateNumberById(shoppingCart);//更新number
+//        }else {
+//        shoppingCartMapper.delete(shoppingCart);//删除整条数据
+//            }
+        shoppingCart.setUserId(BaseContext.getCurrentId());
+        List<ShoppingCart> list = shoppingCartMapper.list(shoppingCart);
+        if (list!=null&& !list.isEmpty()) {
+            shoppingCart= list.get(0);
+            Integer number = shoppingCart.getNumber();
+            if (number==1) {
+                shoppingCartMapper.deleteById(shoppingCart.getId());
+
             }
+            else {
+                shoppingCart.setNumber(shoppingCart.getNumber()-1);
+                shoppingCartMapper.updateNumberById(shoppingCart);
+            }
+        }
+
     }
-
-
 }
