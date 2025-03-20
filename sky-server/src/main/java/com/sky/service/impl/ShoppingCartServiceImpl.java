@@ -96,4 +96,26 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     }
 
+    /**
+     * 删除购物车中的一条数据
+     *
+     * @param shoppingCartDTO
+     */
+    public void delete(ShoppingCartDTO shoppingCartDTO) {
+        //拿到dish_id,setmeal_id,dish_flavor,
+//        同菜不同口味，只有id和dish_flavor才能表示
+//        三个数据封装，传入动态查询中，拿到唯一表示菜品的id，
+        ShoppingCart shoppingCart = new ShoppingCart();
+        BeanUtils.copyProperties(shoppingCartDTO, shoppingCart);
+        shoppingCart= shoppingCartMapper.list(shoppingCart).get(0);
+//        通过id拿到number;
+        if (shoppingCart.getNumber() >= 2) {
+            shoppingCart.setNumber(shoppingCart.getNumber() - 1);
+            shoppingCartMapper.updateNumberById(shoppingCart);//更新number
+        }else {
+        shoppingCartMapper.delete(shoppingCart);//删除整条数据
+            }
+    }
+
+
 }
