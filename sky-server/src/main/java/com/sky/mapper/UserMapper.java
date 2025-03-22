@@ -21,4 +21,5 @@ public interface UserMapper {
      * @param user 构建的新用户
      */
     void insert(User user);
+
 }
