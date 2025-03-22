@@ -14,4 +14,5 @@
             #{detail.number}, #{detail.amount}, #{detail.image})
         </foreach>
     </insert>
+
 </mapper>
