@@ -25,7 +25,7 @@ public interface OrderMapper {
     Orders getByNumber(String orderNumber);
 
     /**
-     * 修改订单信息,模拟已经支付成功后的操作
+     * 修改订单信息
      * @param order 订单
      */
     void update(Orders order);
