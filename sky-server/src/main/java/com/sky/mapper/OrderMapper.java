@@ -45,9 +45,17 @@ public interface OrderMapper {
     void deleteById(Long id);
 
     /**
-     *
+     * 传入OrdersPageQueryDTO，进行分页查询
      * @param ordersPageQueryDTO
      * @return
      */
     Page<Orders> pageQuery(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    /**
+     * 传入状态返回统计值
+     * @param status
+     * @return
+     */
+    @Select("select count(*) from orders where status=#{status}")
+    Integer countByStatus(Integer status);
 }

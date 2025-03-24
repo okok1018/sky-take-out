@@ -5,6 +5,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import com.sky.constant.MessageConstant;
 import com.sky.context.BaseContext;
+import com.sky.dto.OrdersConfirmDTO;
 import com.sky.dto.OrdersPageQueryDTO;
 import com.sky.dto.OrdersPaymentDTO;
 import com.sky.dto.OrdersSubmitDTO;
@@ -15,6 +16,7 @@ import com.sky.exception.ShoppingCartBusinessException;
 import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.service.OrderService;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +30,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+
+import static com.sky.entity.Orders.*;
 
 @Service
 @Slf4j
@@ -121,7 +126,7 @@ public class OrderServiceImpl implements OrderService {
     public void payment(OrdersPaymentDTO ordersPaymentDTO) {
         Orders order = orderMapper.getByNumber(ordersPaymentDTO.getOrderNumber());
         // 根据订单id更新订单的状态、支付方式、支付状态、结账时间
-        order.setStatus(Orders.TO_BE_CONFIRMED);
+        order.setStatus(TO_BE_CONFIRMED);
         order.setPayStatus(Orders.PAID);
         order.setCheckoutTime(LocalDateTime.now());
         orderMapper.update(order);
@@ -168,6 +173,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 再来一单
+     *
      * @param id
      */
     public void repeatOrder(Long id) {
@@ -236,7 +242,7 @@ public class OrderServiceImpl implements OrderService {
      * @param status
      * @return
      */
-    public PageResult pageQuery(int pageNum, int pageSize, Integer status) {
+    public PageResult pageQueryUser(int pageNum, int pageSize, Integer status) {
         // 设置分页
         PageHelper.startPage(pageNum, pageSize);
 
@@ -245,7 +251,7 @@ public class OrderServiceImpl implements OrderService {
         ordersPageQueryDTO.setUserId(BaseContext.getCurrentId());//用户id
 
 
-        Page<Orders> page=orderMapper.pageQuery(ordersPageQueryDTO);//此时已封装全部订单数据
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);//此时已封装全部订单数据
 
         List<OrderVO> list = new ArrayList();
         // 查询出订单明细，并封装入OrderVO进行响应
@@ -263,10 +269,124 @@ public class OrderServiceImpl implements OrderService {
 
                 list.add(orderVO);
             }
+
+
         }
         return new PageResult(page.getTotal(), list);//total,record
 
 
     }
 
+
+
+
+    /**
+     * 管理端订单搜索
+     *
+     * @param ordersPageQueryDTO
+     * @return
+     */
+    public PageResult conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO) {
+        PageHelper.startPage(ordersPageQueryDTO.getPage(), ordersPageQueryDTO.getPageSize());
+        Page<Orders> page = orderMapper.pageQuery(ordersPageQueryDTO);//订单查询之后的结果封装在page里面
+        List<OrderVO> list = getOrderVOList(page);
+        return new PageResult(page.getTotal(), list);
+    }
+
+
+    /**
+     * 传入查询好页面数据，返回一个list的vo集合，只需要后续构造PageResult时直接进行传参
+     * @param page 页面数据
+     * @return OrderVO的list集合
+     */
+    private List<OrderVO> getOrderVOList(Page<Orders> page) {
+        List<OrderVO> orderVOList = new ArrayList<>();
+        List<Orders> orders = page.getResult();
+        if (orders != null && !orders.isEmpty()) {
+            for (Orders order : orders) {
+                OrderVO orderVO = new OrderVO();
+                BeanUtils.copyProperties(order, orderVO);
+                String orderDishesStr = getOrderDishesStr(order);
+            orderVO.setOrderDishes(orderDishesStr);
+            orderVOList.add(orderVO);
+            }
+        }
+
+        return orderVOList;
+    }
+
+    /**
+     * 传入订单，返回订单相关联的菜品数据，以字符串形式
+     * @param order 订单
+     * @return 订单菜品
+     */
+    private String getOrderDishesStr(Orders order) {
+        List<OrderDetail> orderDetails = orderDetailMapper.getOrderDetailsByOrderId(order.getId());
+        String result = orderDetails.stream()
+                .map(detail -> detail.getName() + "*" + detail.getNumber())
+                .collect(Collectors.joining("，", "[", "]"));
+        return result;
+    }
+
+    /**
+     * 各个状态的订单数量统计
+     * @return
+     */
+    public OrderStatisticsVO statistics() {
+        OrderStatisticsVO orderStatisticsVO=new OrderStatisticsVO();
+
+        Integer toBeConfirmedCount = orderMapper.countByStatus(TO_BE_CONFIRMED);
+        Integer confirmedCount = orderMapper.countByStatus(CONFIRMED);
+        Integer deliveryInProgressCount = orderMapper.countByStatus(DELIVERY_IN_PROGRESS);
+
+        orderStatisticsVO.setToBeConfirmed(toBeConfirmedCount);
+        orderStatisticsVO.setConfirmed(confirmedCount);
+        orderStatisticsVO.setDeliveryInProgress(deliveryInProgressCount);
+        return orderStatisticsVO;
+    }
+
+
+    /**
+     * 接单
+     * 该方法将订单状态更新为已确认
+     *
+     * @param ordersConfirmDTO 包含订单ID的订单确认数据传输对象
+     */
+    public void confirmOrder(OrdersConfirmDTO ordersConfirmDTO) {
+        // 创建一个订单对象，设置其ID和状态为已确认
+        Orders orders = Orders.builder()
+                .id(ordersConfirmDTO.getId())
+                .status(Orders.CONFIRMED)
+                .build();
+
+        // 更新数据库中的订单信息
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 根据订单ID获取订单详情
+     *
+     * 此方法旨在通过订单ID查询并返回订单的详细信息，为前端或服务层提供订单的详细数据
+     * 它主要用于支持订单查看功能，允许用户或系统管理员查看特定订单的信息
+     *
+     * @param id 订单ID，用于标识特定订单的唯一键值
+     * @return OrderVO 返回一个包含订单详细信息的对象
+     */
+    public OrderVO getDetails(Long id) {
+        // 根据id查询订单
+        Orders order = orderMapper.getOrders(id);
+        if (order == null) {
+            throw new OrderBusinessException(MessageConstant.ORDER_NOT_FOUND);
+        }
+
+        // 查询该订单对应的菜品/套餐明细
+        List<OrderDetail> orderDetailList = orderDetailMapper.getOrderDetailsByOrderId(order.getId());
+
+        // 将该订单及其详情封装到OrderVO并返回
+        OrderVO orderVO = new OrderVO();
+        BeanUtils.copyProperties(order, orderVO);
+        orderVO.setOrderDetailList(orderDetailList);
+
+        return orderVO;
+    }
 }

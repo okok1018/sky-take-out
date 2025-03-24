@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-@RestController
+@RestController("userOrderController")
 @RequestMapping("/user/order")
 @Slf4j
 @Api(tags = "C端订单相关接口")
@@ -90,7 +90,7 @@ public class OrderController {
     @GetMapping("/historyOrders")
     @ApiOperation("历史订单查询")
     public Result<PageResult> historyOrders(int page,int pageSize,Integer status) {
-        PageResult pageResult=orderService.pageQuery(page,pageSize,status);
+        PageResult pageResult=orderService.pageQueryUser(page,pageSize,status);
         return Result.success(pageResult);
     }
 
