@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 import static com.sky.entity.Orders.*;
@@ -275,8 +276,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
 
-
-
     /**
      * 管理端订单搜索
      *
@@ -293,6 +292,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 传入查询好页面数据，返回一个list的vo集合，只需要后续构造PageResult时直接进行传参
+     *
      * @param page 页面数据
      * @return OrderVO的list集合
      */
@@ -304,8 +304,8 @@ public class OrderServiceImpl implements OrderService {
                 OrderVO orderVO = new OrderVO();
                 BeanUtils.copyProperties(order, orderVO);
                 String orderDishesStr = getOrderDishesStr(order);
-            orderVO.setOrderDishes(orderDishesStr);
-            orderVOList.add(orderVO);
+                orderVO.setOrderDishes(orderDishesStr);
+                orderVOList.add(orderVO);
             }
         }
 
@@ -314,6 +314,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 传入订单，返回订单相关联的菜品数据，以字符串形式
+     *
      * @param order 订单
      * @return 订单菜品
      */
@@ -327,14 +328,16 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 各个状态的订单数量统计
+     *
      * @return
      */
     public OrderStatisticsVO statistics() {
-        OrderStatisticsVO orderStatisticsVO=new OrderStatisticsVO();
+        OrderStatisticsVO orderStatisticsVO = new OrderStatisticsVO();
 
         Integer toBeConfirmedCount = orderMapper.countByStatus(TO_BE_CONFIRMED);
         Integer confirmedCount = orderMapper.countByStatus(CONFIRMED);
         Integer deliveryInProgressCount = orderMapper.countByStatus(DELIVERY_IN_PROGRESS);
+
 
         orderStatisticsVO.setToBeConfirmed(toBeConfirmedCount);
         orderStatisticsVO.setConfirmed(confirmedCount);
@@ -362,7 +365,7 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 根据订单ID获取订单详情
-     *
+     * <p>
      * 此方法旨在通过订单ID查询并返回订单的详细信息，为前端或服务层提供订单的详细数据
      * 它主要用于支持订单查看功能，允许用户或系统管理员查看特定订单的信息
      *
@@ -389,21 +392,81 @@ public class OrderServiceImpl implements OrderService {
 
     /**
      * 拒单
+     *
      * @param ordersRejectionDTO 包含拒单信息
      */
     public void rejecteOrder(OrdersRejectionDTO ordersRejectionDTO) {
         log.info("拒单操作：{}", ordersRejectionDTO);
 //        判断订单状态是否为待接单
-        Orders orders = orderMapper.getOrders(ordersRejectionDTO.getId());
-        if (orders == null || !orders.getStatus().equals(Orders.PENDING_PAYMENT)) {
+        Orders ordersDB = orderMapper.getOrders(ordersRejectionDTO.getId());
+        if (ordersDB == null || !ordersDB.getStatus().equals(Orders.PENDING_PAYMENT)) {
             throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
         }
 
-        orders = Orders.builder()
-                .id(ordersRejectionDTO.getId())
+        Orders order = Orders.builder()
+                .id(ordersDB.getId())
                 .status(Orders.CANCELLED)
                 .rejectionReason(ordersRejectionDTO.getRejectionReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+        orderMapper.update(order);
+    }
+
+    /**
+     * 派送 修改状态即可
+     *
+     * @param id
+     */
+    public void delivery(Long id) {
+        // 判断订单的状态，只有是已结单状态才可派送
+        Orders ordersDB = orderMapper.getOrders(id);
+        if (!ordersDB.getStatus().equals(Orders.CONFIRMED)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+
+        // 更新订单状态为派送中
+        Orders orders = Orders.builder()
+                .id(ordersDB.getId())
+                .status(Orders.DELIVERY_IN_PROGRESS)
+                .build();
+        // 更新数据库中的订单信息
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 商家取消订单
+     *
+     * @param ordersRejectionDTO
+     */
+    public void cancel(OrdersCancelDTO ordersRejectionDTO) {
+
+        Orders orders = Orders.builder()
+                .id(ordersRejectionDTO.getId())
+                .status(Orders.CANCELLED)
+                .cancelReason(ordersRejectionDTO.getCancelReason())
+                .cancelTime(LocalDateTime.now())
+                .build();
+        orderMapper.update(orders);
+    }
+
+    /**
+     * 完成订单
+     *
+     * @param id
+     */
+    public void complete(Long id) {
+        //判断订单是否存在，状态是否为派送中
+        Orders ordersDB = orderMapper.getOrders(id);
+        if (ordersDB == null || !ordersDB.getStatus().equals(Orders.DELIVERY_IN_PROGRESS)) {
+            throw new OrderBusinessException(MessageConstant.ORDER_STATUS_ERROR);
+        }
+        Orders orders = Orders.builder()
+                .id(ordersDB.getId())
+                .status(Orders.COMPLETED)
+                .deliveryTime(LocalDateTime.now())
                 .build();
         orderMapper.update(orders);
     }
 }
+
+
