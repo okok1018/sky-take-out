@@ -191,10 +191,10 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
         List<GoodsSalesDTO> salesTop10 = reportMapper.getSalesTop10(beginTime, endTime);
         // 通过流处理，将销售前10的商品的名称提取出来，收集到一个字符串列表中
-        List<String> nameList = salesTop10.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
+        List<String> nameList = salesTop10.stream().map(GoodsSalesDTO::getName).toList();
 
         // 从salesTop10列表中提取每个商品的销售数量，并创建一个新的列表
-        List<Integer> numberList = salesTop10.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
+        List<Integer> numberList = salesTop10.stream().map(GoodsSalesDTO::getNumber).toList();
         return SalesTop10ReportVO.builder()
                 .nameList(StringUtils.join(nameList,","))
                 .numberList(StringUtils.join(numberList,","))
