@@ -1,9 +1,11 @@
 package com.sky.service.impl;
 
+import com.sky.dto.GoodsSalesDTO;
 import com.sky.entity.Orders;
 import com.sky.mapper.ReportMapper;
 import com.sky.service.ReportService;
 import com.sky.vo.OrderReportVO;
+import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +19,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 public class ReportServiceImpl implements ReportService {
@@ -141,11 +144,11 @@ public class ReportServiceImpl implements ReportService {
 
 
             // 查询当天的订单总数
-            Integer totalOrder =getOrderCount(beginTime, endTime, null) ;
+            Integer totalOrder = getOrderCount(beginTime, endTime, null);
 
             // 添加查询条件：订单状态为已完成
             // 查询当天的有效订单数
-            Integer validOrder = getOrderCount( beginTime, endTime, Orders.COMPLETED);
+            Integer validOrder = getOrderCount(beginTime, endTime, Orders.COMPLETED);
 
             // 将订单总数添加到列表中
             totalOrderCountList.add(totalOrder);
@@ -160,8 +163,8 @@ public class ReportServiceImpl implements ReportService {
 
         //计算整个时间段内的总订单完成率
 //        对订单完成率计算之前还需得判断一下
-        Double orderCompletionRateOverall=0.0;
-        if (totalOrderSum!=0) {
+        Double orderCompletionRateOverall = 0.0;
+        if (totalOrderSum != 0) {
             orderCompletionRateOverall = validOrderSum.doubleValue() / totalOrderSum.doubleValue();
         }
 
@@ -175,12 +178,46 @@ public class ReportServiceImpl implements ReportService {
                 .build();
     }
 
+    /**
+     * 销量排名top10
+     *
+     * @param begin
+     * @param end
+     * @return
+     */
+    public SalesTop10ReportVO top10(LocalDate begin, LocalDate end) {
+        //时间格式转化
+        LocalDateTime beginTime = LocalDateTime.of(begin, LocalTime.MIN);
+        LocalDateTime endTime = LocalDateTime.of(end, LocalTime.MAX);
+        List<GoodsSalesDTO> salesTop10 = reportMapper.getSalesTop10(beginTime, endTime);
+        // 通过流处理，将销售前10的商品的名称提取出来，收集到一个字符串列表中
+        List<String> nameList = salesTop10.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList());
+
+        // 从salesTop10列表中提取每个商品的销售数量，并创建一个新的列表
+        List<Integer> numberList = salesTop10.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList());
+        return SalesTop10ReportVO.builder()
+                .nameList(StringUtils.join(nameList,","))
+                .numberList(StringUtils.join(numberList,","))
+                .build();
+    }
+
+//        String nameList = StringUtils.join(salesTop10.stream().map(GoodsSalesDTO::getName).collect(Collectors.toList()), ",");
+//        String numberList = StringUtils.join(salesTop10.stream().map(GoodsSalesDTO::getNumber).collect(Collectors.toList()), ",");
+//
+//        return SalesTop10ReportVO.builder()
+//                .nameList(nameList)
+//                .numberList(numberList)
+//                .build();
+//    }
+
     private Integer getOrderCount(LocalDateTime begin, LocalDateTime end, Integer status) {
         Map map = new HashMap();
         map.put("begin", begin);
         map.put("end", end);
         map.put("status", status);
         return reportMapper.countByMap(map);
+
+
     }
 }
 
