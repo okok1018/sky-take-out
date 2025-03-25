@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Mapper
@@ -58,4 +59,16 @@ public interface OrderMapper {
      */
     @Select("select count(*) from orders where status=#{status}")
     Integer countByStatus(Integer status);
+
+    /**
+     *  根据状态和下单时间查询订单
+     * @param status
+     * @param outTime
+     * @return
+     */
+    @Select("select * from orders where status=#{status} and order_time < #{outTime}")
+    List<Orders> getByStatusAndOrderTimeLT(Integer status, LocalDateTime outTime);
+
+
+
 }

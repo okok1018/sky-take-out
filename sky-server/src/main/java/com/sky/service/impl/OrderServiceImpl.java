@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -16,6 +17,7 @@ import com.sky.service.OrderService;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
+import com.sky.websocket.WebSocketServer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,7 +45,8 @@ public class OrderServiceImpl implements OrderService {
     private AddressBookMapper addressBookMapper;
     @Autowired
     private ShoppingCartMapper shoppingCartMapper;
-
+    @Autowired
+    private WebSocketServer webSocketServer;
 
     /**
      * 用户下单的业务逻辑实现方法
@@ -128,6 +131,18 @@ public class OrderServiceImpl implements OrderService {
         order.setPayStatus(Orders.PAID);
         order.setCheckoutTime(LocalDateTime.now());
         orderMapper.update(order);
+
+        // 创建一个HashMap实例用于存储消息的相关信息
+        Map map = new HashMap();
+        // 消息类型，1表示来单提醒
+        map.put("type", 1);
+        // 订单ID，用于标识特定的订单
+        map.put("orderId", order.getId());
+        // 消息内容，包含订单号信息
+        map.put("content", "订单号：" + order.getNumber());
+
+        //通过WebSocket实现来单提醒，向客户端浏览器推送消息
+        webSocketServer.sendToAllClient(JSON.toJSONString(map));
     }
 
     /**
