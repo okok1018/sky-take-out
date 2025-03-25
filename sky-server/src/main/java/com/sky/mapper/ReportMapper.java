@@ -13,4 +13,11 @@ public interface ReportMapper {
      * @return
      */
     Double sumByMap(Map map);
+
+    /**
+     * 根据条件查询用户数量
+     * @param map
+     * @return
+     */
+    Integer countUserByMap(Map map);
 }
