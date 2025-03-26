@@ -90,8 +90,8 @@ public interface SetMealMapper {
 
     /**
      *
-     * @param i
+     * @param
      */
     @Select("select count(status) from setmeal where status = #{status}")
-    Integer countByStatus(int i);
+    Integer countByStatus(Integer status);
 }

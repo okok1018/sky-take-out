@@ -8,6 +8,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
 import java.time.LocalDateTime;
+import java.util.HashMap;
 import java.util.List;
 
 @Mapper
@@ -69,6 +70,17 @@ public interface OrderMapper {
     @Select("select * from orders where status=#{status} and order_time < #{outTime}")
     List<Orders> getByStatusAndOrderTimeLT(Integer status, LocalDateTime outTime);
 
+    /**
+     * 根据map查询订单总数
+     * @param map
+     * @return
+     */
+    Integer countByMap(HashMap map);
 
-
+    /**
+     * 根据map查询订单总金额
+     * @param map
+     * @return
+     */
+    Double  sumByMap(HashMap map);
 }
