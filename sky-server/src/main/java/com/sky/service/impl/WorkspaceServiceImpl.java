@@ -43,7 +43,7 @@ public class WorkspaceServiceImpl implements WorkspaceService {
     }
 
     /**
-     * 套擦总览
+     * 套餐总览
      *
      * @return
      */
@@ -92,10 +92,9 @@ public class WorkspaceServiceImpl implements WorkspaceService {
      *
      * @return
      */
-    public BusinessDataVO businessData() {
+    public BusinessDataVO getBusinessData(LocalDateTime beginTime, LocalDateTime endTime) {
 //统计新增用户数，订单完成率，营业额，平均客单价，有效订单数
-        LocalDateTime beginTime = LocalDateTime.now().with(LocalTime.MIN);
-        LocalDateTime endTime = LocalDateTime.now().with(LocalTime.MAX);
+
 //传入时间点，统计出新增用户数
         HashMap map = new HashMap();
         map.put("beginTime", beginTime);
@@ -129,6 +128,8 @@ public class WorkspaceServiceImpl implements WorkspaceService {
                 .validOrderCount(validOrderCount)
                 .build();
     }
+
+
 
 
 }
